@@ -1,0 +1,18 @@
+#Visual Studio files
+*.[Oo]bj
+[Bb]in
+[Dd]ebug*/
+[Rr]elease*/
+*.user
+*.suo
+
+#Tooling
+_ReSharper*/
+*.resharper
+*.swp
+
+#RavenDb
+packages/RavenDB*/server/Logs
+packages/RavenDB*/server/Data
+packages/RavenDB*/server/Tenants
+
