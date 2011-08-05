@@ -37,20 +37,11 @@
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\packages\Newtonsoft.Json.4.0.2\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="NLog">
-      <HintPath>..\packages\RavenDB.1.0.0.427\lib\net40\NLog.dll</HintPath>
-    </Reference>
     <Reference Include="Raven.Abstractions">
       <HintPath>..\packages\RavenDB.1.0.0.427\lib\net40\Raven.Abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="Raven.Client.Debug">
-      <HintPath>..\packages\RavenDB.1.0.0.427\lib\net40\Raven.Client.Debug.dll</HintPath>
-    </Reference>
     <Reference Include="Raven.Client.Lightweight">
       <HintPath>..\packages\RavenDB.1.0.0.427\lib\net40\Raven.Client.Lightweight.dll</HintPath>
-    </Reference>
-    <Reference Include="Raven.Client.MvcIntegration">
-      <HintPath>..\packages\RavenDB.1.0.0.427\lib\net40\Raven.Client.MvcIntegration.dll</HintPath>
     </Reference>
     <Reference Include="Raven.Json">
       <HintPath>..\packages\RavenDB.1.0.0.427\lib\net40\Raven.Json.dll</HintPath>
