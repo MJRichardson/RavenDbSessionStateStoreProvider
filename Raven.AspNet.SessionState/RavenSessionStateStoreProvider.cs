@@ -10,7 +10,7 @@ using Raven.Client;
 using Raven.Client.Document;
 using Raven.Json.Linq;
 
-namespace Raven.AspNet
+namespace Raven.AspNet.SessionState
 {
     /// <summary>
     /// An ASP.NET session-state store-provider implementation (http://msdn.microsoft.com/en-us/library/ms178588.aspx) using 
@@ -337,7 +337,7 @@ namespace Raven.AspNet
                 if (sessionState.Locked)
                 {
                     locked = true;
-                    lockAge = DateTime.UtcNow.Subtract(sessionState.LockDate);
+                    lockAge = DateTime.UtcNow.Subtract((DateTime) sessionState.LockDate);
                     lockId = sessionState.LockId;
                     return null;
                 }

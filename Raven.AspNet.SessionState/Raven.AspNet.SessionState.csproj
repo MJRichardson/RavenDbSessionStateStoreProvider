@@ -8,8 +8,8 @@
     <ProjectGuid>{EE671708-CC0E-4E48-8511-820109440610}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Raven.AspNet</RootNamespace>
-    <AssemblyName>Raven.AspNet</AssemblyName>
+    <RootNamespace>Raven.AspNet.SessionState</RootNamespace>
+    <AssemblyName>Raven.AspNet.SessionState</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

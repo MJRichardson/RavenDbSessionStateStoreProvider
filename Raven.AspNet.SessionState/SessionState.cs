@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Web.SessionState;
 
-namespace Raven.AspNet
+namespace Raven.AspNet.SessionState
 {
     internal class SessionState
     {
