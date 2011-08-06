@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Raven.AspNet")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("Raven.AspNet.SessionState")]
+[assembly: AssemblyDescription("An ASP.NET session-state store-provider implementation using RavenDB for persistence.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Microsoft")]
-[assembly: AssemblyProduct("Raven.AspNet")]
-[assembly: AssemblyCopyright("Copyright © Microsoft 2011")]
+[assembly: AssemblyCompany("Michael James Richardson")]
+[assembly: AssemblyProduct("Raven.AspNet.SessionState")]
+[assembly: AssemblyCopyright("")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

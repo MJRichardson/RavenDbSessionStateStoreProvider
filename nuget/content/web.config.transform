@@ -1,0 +1,15 @@
+<configuration>
+
+	<connectionStrings>
+    		<add name="SessionState" connectionString="Url = http://localhost:8080; DefaultDatabase=SessionState;" />
+  	</connectionStrings>
+
+	<system.web>
+		<sessionState mode="Custom" customProvider="RavenSessionStateStore">
+      			<providers>
+        			<add name="RavenSessionStateStore" type="Raven.AspNet.SessionState.RavenSessionStateStoreProvider" connectionStringName="SessionState" />
+      			</providers>
+    		</sessionState>
+	</system.web>
+
+</configuration>

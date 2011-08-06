@@ -16,3 +16,8 @@ packages/RavenDB*/server/Logs
 packages/RavenDB*/server/Data
 packages/RavenDB*/server/Tenants
 
+#nuget
+nuget/lib
+nuget/*.nupkg
+
+
