@@ -3,6 +3,11 @@ RavenSessionStateStoreProvider
 
 An ASP.NET session-state store-provider (http://msdn.microsoft.com/en-us/library/ms178587.aspx) implementation using RavenDB (http://ravendb.net/) for persistence.
 
+===========================
+NuGet
+===========================
+The easiest way to install is via the NuGet package (http://nuget.org/List/Packages/Raven.AspNet.SessionState).
+
 ============================
 Configuration:
 =============================
