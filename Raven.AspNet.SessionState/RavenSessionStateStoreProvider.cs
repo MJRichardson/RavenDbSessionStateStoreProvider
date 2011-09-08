@@ -5,6 +5,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Configuration;
 using System.Web.SessionState;
+using NLog;
 using Raven.Abstractions.Exceptions;
 using Raven.Client;
 using Raven.Client.Document;
@@ -16,45 +17,88 @@ namespace Raven.AspNet.SessionState
     /// An ASP.NET session-state store-provider implementation (http://msdn.microsoft.com/en-us/library/ms178588.aspx) using 
     /// RavenDb (http://ravendb.net) for persistence.
     /// </summary>
-    public class RavenSessionStateStoreProvider : SessionStateStoreProviderBase
+    public class RavenSessionStateStoreProvider : SessionStateStoreProviderBase, IDisposable
     {
         private const int RetriesOnConcurrentConfictsDefault = 3;
 
 
-        private string _applicationName;
         private IDocumentStore _documentStore;
         private SessionStateSection _sessionStateConfig;
         private int _retriesOnConcurrentConflicts = RetriesOnConcurrentConfictsDefault;
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
+        /// <summary>
+        /// Public parameterless constructor
+        /// </summary>
+        public RavenSessionStateStoreProvider()
+        {}
 
+        /// <summary>
+        /// Constructor accepting a document store instance, used for testing.
+        /// </summary>
+        public RavenSessionStateStoreProvider(IDocumentStore documentStore)
+        {
+            _documentStore = documentStore;
+        }
+
+        /// <summary>
+        /// The name of the application.
+        /// Session-data items will be stored against this name.
+        /// If not set, defaults to System.Web.Hosting.HostingEnvironment.ApplicationVirtualPath
+        /// </summary>
+        public string ApplicationName { get; set; }
+      
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {
-            if (config == null)
-                throw new ArgumentNullException("config");
-
-            if (string.IsNullOrEmpty(config["connectionStringName"]))
-                throw new ConfigurationErrorsException("Must supply a connectionStringName.");
-
-            if (string.IsNullOrEmpty(name))
-                name = "RavenSessionStateStore";
-
-            base.Initialize(name, config);
-
-            if (config["retriesOnConcurrentConflicts"] != null)
+            try
             {
-                int retriesOnConcurrentConflicts;
-                if (int.TryParse(config["retriesOnConcurrentConflicts"], out retriesOnConcurrentConflicts))
-                    _retriesOnConcurrentConflicts = retriesOnConcurrentConflicts;
+                if (config == null)
+                    throw new ArgumentNullException("config");
+
+                Logger.Debug("Beginning Initialize. Name= {0}. Config={1}.", 
+                    name, config.AllKeys.Aggregate("", (aggregate, next) => aggregate + next + ":" + config[next]));
+           
+               
+                if (string.IsNullOrEmpty(name))
+                    name = "RavenSessionStateStore";
+
+                base.Initialize(name, config);
+
+                if (config["retriesOnConcurrentConflicts"] != null)
+                {
+                    int retriesOnConcurrentConflicts;
+                    if (int.TryParse(config["retriesOnConcurrentConflicts"], out retriesOnConcurrentConflicts))
+                        _retriesOnConcurrentConflicts = retriesOnConcurrentConflicts;
+                }
+
+                if (string.IsNullOrEmpty(ApplicationName))
+                    ApplicationName = System.Web.Hosting.HostingEnvironment.ApplicationVirtualPath;
+
+                _sessionStateConfig = (SessionStateSection) ConfigurationManager.GetSection("system.web/sessionState");
+
+                if (_documentStore == null)
+                {
+                    if (string.IsNullOrEmpty(config["connectionStringName"]))
+                        throw new ConfigurationErrorsException("Must supply a connectionStringName.");
+
+                    _documentStore = new DocumentStore
+                                         {
+                                             ConnectionStringName = config["connectionStringName"],
+                                             Conventions = {FindIdentityProperty = q => q.Name == "SessionId"}
+                                         };
+                    _documentStore.Initialize();
+                }
+
+                Logger.Debug("Completed Initalize.");
+
+            }
+            catch(Exception ex)
+            {
+                Logger.ErrorException("Error while initializing.", ex);
+                throw;
             }
 
-            _applicationName = System.Web.Hosting.HostingEnvironment.ApplicationVirtualPath;
-            _sessionStateConfig = (SessionStateSection)ConfigurationManager.GetSection("system.web/sessionState");
-            _documentStore = new DocumentStore
-            {
-                ConnectionStringName = config["connectionStringName"],
-                Conventions = { FindIdentityProperty = q => q.Name == "SessionId" }
-            };
-            _documentStore.Initialize();
+
         }
 
 
@@ -80,8 +124,23 @@ namespace Raven.AspNet.SessionState
                                                                out object lockId,
                                                                out SessionStateActions actions)
         {
-            return GetSessionStoreItem(true, context, id, _retriesOnConcurrentConflicts, out locked,
-                                       out lockAge, out lockId, out actions);
+            try
+            {
+                Logger.Debug("Beginning GetItemExclusive. SessionId={0}.", id);
+
+                var item = GetSessionStoreItem(true, context, id, _retriesOnConcurrentConflicts, out locked,
+                                           out lockAge, out lockId, out actions);
+
+                Logger.Debug("Completed GetItemExclusive. SessionId={0}, locked={1}, lockAge={2}, lockId={3}, actions={4}.", id, locked, lockAge, lockId, actions);
+
+                return item;
+            }
+            catch (Exception ex)
+            {
+                Logger.ErrorException(string.Format("Error during GetItemExclusive. SessionId={0}.", id), ex);
+                throw;
+            }
+
         }
 
         /// <summary>
@@ -101,7 +160,22 @@ namespace Raven.AspNet.SessionState
                                                       out TimeSpan lockAge, out object lockId,
                                                       out SessionStateActions actions)
         {
-            return GetSessionStoreItem(false, context, id, 0, out locked, out lockAge, out lockId, out actions);
+            try
+            {
+                Logger.Debug("Beginning GetItem. SessionId={0}.", id);
+
+                var item =  GetSessionStoreItem(false, context, id, 0, out locked, out lockAge, out lockId, out actions);
+
+                Logger.Debug("Completed GetItem. SessionId={0}, locked={1}, lockAge={2}, lockId={3}, actions={4}.", id, locked, lockAge, lockId, actions);
+
+                return item;
+            }
+            catch (Exception ex)
+            {
+                Logger.ErrorException(string.Format("Error during GetItem. SessionId={0}.", 
+                    id), ex);
+                throw;
+            }
         }
 
 
@@ -118,36 +192,56 @@ namespace Raven.AspNet.SessionState
         public override void SetAndReleaseItemExclusive(HttpContext context, string id, SessionStateStoreData item,
                                                         object lockId, bool newItem)
         {
-            var serializedItems = Serialize((SessionStateItemCollection)item.Items);
-
-            using (var documentSession = _documentStore.OpenSession())
+            try
             {
-                SessionState sessionState;
-                if (newItem)
-                {
-                    sessionState = documentSession.Query<SessionState>().SingleOrDefault(
-                        x => x.SessionId == id && x.ApplicationName == _applicationName && x.Expires < DateTime.UtcNow);
+                Logger.Debug(" Beginning SetAndReleaseItemExclusive. SessionId={0}, LockId={1}, newItem={2}.", id, lockId,
+                              newItem);
 
-                    if (sessionState == null)
+                var serializedItems = Serialize((SessionStateItemCollection) item.Items);
+
+                using (var documentSession = _documentStore.OpenSession())
+                {
+                    //if we get a concurrency conflict, then we want to know about it
+                    documentSession.Advanced.UseOptimisticConcurrency = true;
+
+                    SessionState sessionState;
+                    if (newItem)
                     {
-                        sessionState = new SessionState ( id, _applicationName );
+                        sessionState = documentSession.Query<SessionState>()
+                            .Customize(x=>x.WaitForNonStaleResultsAsOfLastWrite())
+                            .SingleOrDefault(
+                            x =>
+                            x.SessionId == id && x.ApplicationName == ApplicationName && x.Expires < DateTime.UtcNow);
+
+                        if (sessionState != null)
+                            throw new InvalidOperationException(string.Format("Item aleady exist with SessionId={0} and ApplicationName={1}", id, lockId ));
+                        
+                        sessionState = new SessionState(id, ApplicationName);
                         documentSession.Store(sessionState);
                     }
+                    else
+                    {
+                        sessionState = documentSession.Query<SessionState>().Single(
+                            x => x.SessionId == id && x.ApplicationName == ApplicationName && x.LockId == (int) lockId);
+                    }
 
+                    var expiry = DateTime.UtcNow.AddMinutes(_sessionStateConfig.Timeout.Minutes);
+                    sessionState.Expires = expiry;
+                    documentSession.Advanced.GetMetadataFor(sessionState)["Raven-Expiration-Date"] =
+                        new RavenJValue(expiry);
+                    sessionState.SessionItems = serializedItems;
+                    sessionState.Locked = false;
+
+                    documentSession.SaveChanges();
                 }
-                else
-                {
-                    sessionState = documentSession.Query<SessionState>().Single(
-                        x => x.SessionId == id && x.ApplicationName == _applicationName && x.LockId == (int)lockId);
-                }
 
-                var expiry = DateTime.UtcNow.AddMinutes(_sessionStateConfig.Timeout.Minutes);
-                sessionState.Expires = expiry;
-                documentSession.Advanced.GetMetadataFor(sessionState)["Raven-Expiration-Date"] = new RavenJValue(expiry);
-                sessionState.SessionItems = serializedItems;
-                sessionState.Locked = false;
+                Logger.Debug("Completed SetAndReleaseItemExclusive. SessionId={0}, LockId={1}, newItem={2}.", id, lockId, newItem);
 
-                documentSession.SaveChanges();
+            }
+            catch(Exception ex)
+            {
+                Logger.ErrorException(string.Format("Error during SetAndReleaseItemExclusive. SessionId={0}, LockId={1}, newItem={2}.", id, lockId, newItem), ex);
+                throw;
             }
         }
 
@@ -159,21 +253,39 @@ namespace Raven.AspNet.SessionState
         /// <param name="lockId">The lock identifier for the current request.</param>
         public override void ReleaseItemExclusive(HttpContext context, string id, object lockId)
         {
-            using (var documentSession = _documentStore.OpenSession())
+            try
             {
-                var sessionState = documentSession.Query<SessionState>().SingleOrDefault(
-                    x => x.SessionId == id && x.ApplicationName == _applicationName && x.LockId == (int)lockId);
+                Logger.Debug("Beginning ReleaseItemExclusive. SessionId={0}, LockId={1}", id, lockId);
 
-                if (sessionState != null)
+                using (var documentSession = _documentStore.OpenSession())
                 {
-                    sessionState.Locked = false;
+                    //if we get a concurrency conflict, then we want to know about it
+                    documentSession.Advanced.UseOptimisticConcurrency = true;
 
-                    var expiry = DateTime.UtcNow.AddMinutes(_sessionStateConfig.Timeout.Minutes);
-                    sessionState.Expires = expiry;
-                    documentSession.Advanced.GetMetadataFor(sessionState)["Raven-Expiration-Date"] = new RavenJValue(expiry);
 
-                    documentSession.SaveChanges();
+                    var sessionState = documentSession.Query<SessionState>()
+                        .Customize(x => x.WaitForNonStaleResultsAsOfLastWrite())
+                        .Single(x => x.SessionId == id && x.ApplicationName == ApplicationName && x.LockId == (int) lockId);
+
+                   
+                        sessionState.Locked = false;
+
+                        var expiry = DateTime.UtcNow.AddMinutes(_sessionStateConfig.Timeout.Minutes);
+                        sessionState.Expires = expiry;
+                        documentSession.Advanced.GetMetadataFor(sessionState)["Raven-Expiration-Date"] =
+                            new RavenJValue(expiry);
+
+                        documentSession.SaveChanges();
+                    
                 }
+
+                Logger.Debug("Completed ReleaseItemExclusive. SessionId={0}, LockId={1}", id, lockId);
+
+            }
+            catch(Exception ex)
+            {
+                Logger.ErrorException(string.Format("Error during ReleaseItemExclusive. SessionId={0}, LockId={1}.", id, lockId), ex);
+                throw;
             }
         }
 
@@ -188,17 +300,34 @@ namespace Raven.AspNet.SessionState
         /// <param name="item"></param>
         public override void RemoveItem(HttpContext context, string id, object lockId, SessionStateStoreData item)
         {
-            using (var documentSession = _documentStore.OpenSession())
+            try
             {
-                var sessionState =
-                    documentSession.Query<SessionState>().SingleOrDefault(
-                        x => x.SessionId == id && x.ApplicationName == _applicationName && x.LockId == (int)lockId);
+                Logger.Debug("Beginning RemoveItem. id={0}, lockId={1}.", id, lockId);
 
-                if (sessionState != null)
+                using (var documentSession = _documentStore.OpenSession())
                 {
-                    documentSession.Delete(sessionState);
-                    documentSession.SaveChanges();
+                    //if we get a concurrency conflict, then we want to know about it
+                    documentSession.Advanced.UseOptimisticConcurrency = true;
+
+                    var sessionState =
+                        documentSession.Query<SessionState>()
+                        .Customize(x=>x.WaitForNonStaleResultsAsOfLastWrite())
+                        .SingleOrDefault(
+                            x => x.SessionId == id && x.ApplicationName == ApplicationName && x.LockId == (int) lockId);
+
+                    if (sessionState != null)
+                    {
+                        documentSession.Delete(sessionState);
+                        documentSession.SaveChanges();
+                    }
                 }
+
+                Logger.Debug("Completed RemoveItem. id={0}, lockId={1}.", id, lockId);
+            }
+            catch (Exception ex)
+            {
+                Logger.ErrorException(string.Format("Error during RemoveItem. SessionId={0}; LockId={1}", id, lockId), ex);
+                throw;
             }
         }
 
@@ -209,18 +338,40 @@ namespace Raven.AspNet.SessionState
         /// <param name="id">The session identifier.</param>
         public override void ResetItemTimeout(HttpContext context, string id)
         {
-            using (var documentSession = _documentStore.OpenSession())
+            try
             {
-                var sessionState = documentSession.Query<SessionState>().SingleOrDefault(
-                    x => x.SessionId == id && x.ApplicationName == _applicationName);
+                Logger.Debug("Beginning ResetItemTimeout. id={0}.", id);
 
-                if (sessionState != null)
+
+                using (var documentSession = _documentStore.OpenSession())
                 {
-                    var expiry = DateTime.UtcNow.AddMinutes(_sessionStateConfig.Timeout.Minutes);
-                    sessionState.Expires = expiry;
-                    documentSession.Advanced.GetMetadataFor(sessionState)["Raven-Expiration-Date"] = new RavenJValue(expiry);
-                    documentSession.SaveChanges();
+                    //we do not want to overwrite any changes
+                    documentSession.Advanced.UseOptimisticConcurrency = true;
+
+                    var sessionState = documentSession.Query<SessionState>().SingleOrDefault(
+                        x => x.SessionId == id && x.ApplicationName == ApplicationName);
+
+                    if (sessionState != null)
+                    {
+                        var expiry = DateTime.UtcNow.AddMinutes(_sessionStateConfig.Timeout.Minutes);
+                        sessionState.Expires = expiry;
+                        documentSession.Advanced.GetMetadataFor(sessionState)["Raven-Expiration-Date"] =
+                            new RavenJValue(expiry);
+                        documentSession.SaveChanges();
+                    }
                 }
+
+                Logger.Debug("Completed ResetItemTimeout. id={0}.", id);
+            }
+            catch(ConcurrencyException cEx)
+            {
+                //we log and ignore. Should never happen, but not fatal if it does.
+                Logger.ErrorException("ConcurrencyException during ResetTimeout. SessionId=" + id, cEx);
+            }
+            catch(Exception ex)
+            {
+                Logger.ErrorException("Error during ResetItemTimeout. SessionId=" + id, ex);
+                throw;
             }
         }
 
@@ -233,18 +384,32 @@ namespace Raven.AspNet.SessionState
         /// <param name="timeout">The expiry timeout in minutes.</param>
         public override void CreateUninitializedItem(HttpContext context, string id, int timeout)
         {
-            using (var documentSession = _documentStore.OpenSession())
+            try
             {
-                var expiry = DateTime.UtcNow.AddMinutes(timeout);
+                Logger.Debug("Beginning CreateUninitializedItem. id={0}, timeout={1}.", id, timeout);
 
-                var sessionState = new SessionState(id, _applicationName)
+                using (var documentSession = _documentStore.OpenSession())
                 {
-                    Expires = expiry
-                };
+                    var expiry = DateTime.UtcNow.AddMinutes(timeout);
 
-                documentSession.Store(sessionState);
-                documentSession.Advanced.GetMetadataFor(sessionState)["Raven-Expiration-Date"] = new RavenJValue(expiry);
-                documentSession.SaveChanges();
+                    var sessionState = new SessionState(id, ApplicationName)
+                                           {
+                                               Expires = expiry
+                                           };
+
+                    documentSession.Store(sessionState);
+                    documentSession.Advanced.GetMetadataFor(sessionState)["Raven-Expiration-Date"] =
+                        new RavenJValue(expiry);
+                    documentSession.SaveChanges();
+                }
+
+                Logger.Debug("Completed CreateUninitializedItem. id={0}, timeout={1}.", id, timeout);
+
+            }
+            catch (Exception ex)
+            {
+                Logger.ErrorException("Error during CreateUninitializedItem.", ex);
+                throw;
             }
         }
 
@@ -327,8 +492,9 @@ namespace Raven.AspNet.SessionState
                 documentSession.Advanced.UseOptimisticConcurrency = true;
 
                 var sessionState =
-                    documentSession.Query<SessionState>().SingleOrDefault(
-                        x => x.SessionId == id && x.ApplicationName == _applicationName);
+                    documentSession.Query<SessionState>()
+                    .Customize(x=>x.WaitForNonStaleResultsAsOfLastWrite())
+                    .SingleOrDefault( x => x.SessionId == id && x.ApplicationName == ApplicationName );
 
                 if (sessionState == null)
                     return null;
