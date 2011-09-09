@@ -221,8 +221,9 @@ namespace Raven.AspNet.SessionState
                     }
                     else
                     {
-                        sessionState = documentSession.Query<SessionState>().Single(
-                            x => x.SessionId == id && x.ApplicationName == ApplicationName && x.LockId == (int) lockId);
+                        sessionState = documentSession.Query<SessionState>()
+                            .Customize(x=>x.WaitForNonStaleResultsAsOfLastWrite())
+                            .Single(x => x.SessionId == id && x.ApplicationName == ApplicationName && x.LockId == (int) lockId);
                     }
 
                     var expiry = DateTime.UtcNow.AddMinutes(_sessionStateConfig.Timeout.Minutes);
