@@ -17,7 +17,7 @@ packages/RavenDB*/server/Data
 packages/RavenDB*/server/Tenants
 
 #nuget
-nuget/lib
+nuget/lib/**/*.*
 nuget/*.nupkg
 
 
