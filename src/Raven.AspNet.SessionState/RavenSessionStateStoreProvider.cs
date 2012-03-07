@@ -226,7 +226,7 @@ namespace Raven.AspNet.SessionState
                             .Single(x => x.SessionId == id && x.ApplicationName == ApplicationName && x.LockId == (int) lockId);
                     }
 
-                    var expiry = DateTime.UtcNow.AddMinutes(_sessionStateConfig.Timeout.Minutes);
+                    var expiry = DateTime.UtcNow.AddMinutes(_sessionStateConfig.Timeout.TotalMinutes);
                     sessionState.Expires = expiry;
                     documentSession.Advanced.GetMetadataFor(sessionState)["Raven-Expiration-Date"] =
                         new RavenJValue(expiry);
@@ -271,7 +271,7 @@ namespace Raven.AspNet.SessionState
                    
                         sessionState.Locked = false;
 
-                        var expiry = DateTime.UtcNow.AddMinutes(_sessionStateConfig.Timeout.Minutes);
+                        var expiry = DateTime.UtcNow.AddMinutes(_sessionStateConfig.Timeout.TotalMinutes);
                         sessionState.Expires = expiry;
                         documentSession.Advanced.GetMetadataFor(sessionState)["Raven-Expiration-Date"] =
                             new RavenJValue(expiry);
@@ -354,7 +354,7 @@ namespace Raven.AspNet.SessionState
 
                     if (sessionState != null)
                     {
-                        var expiry = DateTime.UtcNow.AddMinutes(_sessionStateConfig.Timeout.Minutes);
+                        var expiry = DateTime.UtcNow.AddMinutes(_sessionStateConfig.Timeout.TotalMinutes);
                         sessionState.Expires = expiry;
                         documentSession.Advanced.GetMetadataFor(sessionState)["Raven-Expiration-Date"] =
                             new RavenJValue(expiry);
@@ -551,8 +551,8 @@ namespace Raven.AspNet.SessionState
                     sessionState.Flags == SessionStateActions.InitializeItem
                         ? new SessionStateStoreData(new SessionStateItemCollection(),
                                                     SessionStateUtility.GetSessionStaticObjects(context),
-                                                    _sessionStateConfig.Timeout.Minutes)
-                        : Deserialize(context, sessionState.SessionItems, _sessionStateConfig.Timeout.Minutes);
+                                                    (int)_sessionStateConfig.Timeout.TotalMinutes)
+                        : Deserialize(context, sessionState.SessionItems, (int)_sessionStateConfig.Timeout.TotalMinutes);
             }
         }
 
