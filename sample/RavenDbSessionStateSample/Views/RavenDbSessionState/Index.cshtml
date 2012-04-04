@@ -1,0 +1,15 @@
+﻿
+@{
+    ViewBag.Title = "RavenDb SessionState Sample";
+}
+
+<h2>RavenDb SessionState Sample</h2>
+
+<p>The current value is: @(ViewBag.Value) </p>
+
+@using (Html.BeginForm("SetValue","RavenDbSessionState"))
+{
+    @Html.TextBox("value")
+    
+    <button type="submit">Set Value</button>
+}
