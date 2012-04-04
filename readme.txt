@@ -21,7 +21,7 @@ Configuration:
 	<system.web>
  		<sessionState  mode="Custom" customProvider="RavenSessionStateStore">
       			<providers>
-        			<add name="RavenSessionStateStore" type="Raven.AspNet.RavenSessionStateStoreProvider" connectionStringName="SessionState" />
+        			<add name="RavenSessionStateStore" type="Raven.AspNet.SessionState.RavenSessionStateStoreProvider" connectionStringName="SessionState" />
       			</providers>
     		</sessionState>
 	</system.web>

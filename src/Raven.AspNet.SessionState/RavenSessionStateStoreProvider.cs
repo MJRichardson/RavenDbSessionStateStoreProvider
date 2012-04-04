@@ -10,6 +10,7 @@ using Raven.Abstractions.Exceptions;
 using Raven.Client;
 using Raven.Client.Document;
 using Raven.Json.Linq;
+using Raven.Client.Extensions;
 
 namespace Raven.AspNet.SessionState
 {
@@ -86,7 +87,9 @@ namespace Raven.AspNet.SessionState
                                              ConnectionStringName = config["connectionStringName"],
                                              Conventions = {FindIdentityProperty = q => q.Name == "SessionId"}
                                          };
+
                     _documentStore.Initialize();
+
                 }
 
                 Logger.Debug("Completed Initalize.");
@@ -488,7 +491,7 @@ namespace Raven.AspNet.SessionState
             using (var documentSession = _documentStore.OpenSession())
             {
                 //don't tolerate stale data
-                documentSession.Advanced.AllowNonAuthoritiveInformation = false;
+                documentSession.Advanced.AllowNonAuthoritativeInformation = false;
                 //if we get a concurrency conflict, then we want to know about it
                 documentSession.Advanced.UseOptimisticConcurrency = true;
 
