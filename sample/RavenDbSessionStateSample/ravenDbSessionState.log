@@ -1,0 +1,72 @@
+2012-04-24 13:03:15.9513|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Beginning GetItemExclusive. SessionId=ya42jdsxfl1ddw4qnmwqsnlb.
+2012-04-24 13:03:15.9513|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Retrieving item from RavenDB. SessionId: ya42jdsxfl1ddw4qnmwqsnlb; ApplicationName=/.
+2012-04-24 13:03:17.1624|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Item retrieved has expired. SessionId: {0}; ApplicationName={1}; Expiry (UTC): {3}
+2012-04-24 13:03:17.2104|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Completed GetItemExclusive. SessionId=ya42jdsxfl1ddw4qnmwqsnlb, locked=False, lockAge=00:00:00, lockId=, actions=None.
+2012-04-24 13:03:17.2104|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Beginning CreateUninitializedItem. id=ya42jdsxfl1ddw4qnmwqsnlb, timeout=20.
+2012-04-24 13:03:17.2134|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Completed CreateUninitializedItem. id=ya42jdsxfl1ddw4qnmwqsnlb, timeout=20.
+2012-04-24 13:03:17.2134|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Beginning GetItemExclusive. SessionId=ya42jdsxfl1ddw4qnmwqsnlb.
+2012-04-24 13:03:17.2134|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Retrieving item from RavenDB. SessionId: ya42jdsxfl1ddw4qnmwqsnlb; ApplicationName=/.
+2012-04-24 13:03:17.3374|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Completed GetItemExclusive. SessionId=ya42jdsxfl1ddw4qnmwqsnlb, locked=False, lockAge=00:00:00, lockId=1, actions=None.
+2012-04-24 13:03:17.3374|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Beginning ReleaseItemExclusive. SessionId=ya42jdsxfl1ddw4qnmwqsnlb, LockId=1
+2012-04-24 13:03:17.4714|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Completed ReleaseItemExclusive. SessionId=ya42jdsxfl1ddw4qnmwqsnlb, LockId=1
+2012-04-24 13:03:21.1668|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Beginning ResetItemTimeout. id=ya42jdsxfl1ddw4qnmwqsnlb.
+2012-04-24 13:03:21.2138|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Completed ResetItemTimeout. id=ya42jdsxfl1ddw4qnmwqsnlb.
+2012-04-24 13:03:24.7242|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Beginning GetItemExclusive. SessionId=ya42jdsxfl1ddw4qnmwqsnlb.
+2012-04-24 13:03:24.7242|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Retrieving item from RavenDB. SessionId: ya42jdsxfl1ddw4qnmwqsnlb; ApplicationName=/.
+2012-04-24 13:03:24.7592|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Completed GetItemExclusive. SessionId=ya42jdsxfl1ddw4qnmwqsnlb, locked=False, lockAge=00:00:00, lockId=2, actions=None.
+2012-04-24 13:03:24.7592|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider| Beginning SetAndReleaseItemExclusive. SessionId=ya42jdsxfl1ddw4qnmwqsnlb, LockId=2, newItem=False.
+2012-04-24 13:03:24.8802|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Completed SetAndReleaseItemExclusive. SessionId=ya42jdsxfl1ddw4qnmwqsnlb, LockId=2, newItem=False.
+2012-04-24 13:03:27.4734|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Beginning GetItemExclusive. SessionId=ya42jdsxfl1ddw4qnmwqsnlb.
+2012-04-24 13:03:27.4734|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Retrieving item from RavenDB. SessionId: ya42jdsxfl1ddw4qnmwqsnlb; ApplicationName=/.
+2012-04-24 13:03:27.4954|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Completed GetItemExclusive. SessionId=ya42jdsxfl1ddw4qnmwqsnlb, locked=False, lockAge=00:00:00, lockId=3, actions=None.
+2012-04-24 13:03:27.4954|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Beginning ReleaseItemExclusive. SessionId=ya42jdsxfl1ddw4qnmwqsnlb, LockId=3
+2012-04-24 13:03:27.6235|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Completed ReleaseItemExclusive. SessionId=ya42jdsxfl1ddw4qnmwqsnlb, LockId=3
+2012-04-24 13:03:30.1827|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Beginning ResetItemTimeout. id=ya42jdsxfl1ddw4qnmwqsnlb.
+2012-04-24 13:03:30.1937|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Completed ResetItemTimeout. id=ya42jdsxfl1ddw4qnmwqsnlb.
+2012-04-24 13:12:39.1286|ERROR|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|An exception was thrown while disposing the DocumentStore: System.ArgumentNullException: Value cannot be null.
+Parameter name: httpContext
+   at System.Web.HttpContextWrapper..ctor(HttpContext httpContext)
+   at Glimpse.Core.Extensibility.GlimpseTimer.get_Context()
+   at Glimpse.Core.Extensibility.GlimpseTimer.get_TimerMetadata()
+   at Glimpse.Core.Extensibility.GlimpseTimer.Moment(String message, String category, String description)
+   at Glimpse.RavenDb.Profiler.StopTrackingStore(Object sender, EventArgs e) in C:\Projects\OSS\Glimpse.RavenDb\Glimpse.RavenDb\Profiler.cs:line 196
+   at Raven.Client.Document.DocumentStore.Dispose() in c:\Builds\RavenDB-Stable\Raven.Client.Lightweight\Document\DocumentStore.cs:line 250
+   at Raven.AspNet.SessionState.RavenSessionStateStoreProvider.Dispose()
+2012-04-24 13:20:47.2624|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Beginning Initialize. Name= RavenSessionStateStore. Config=connectionStringName:SessionState.
+2012-04-24 13:20:47.4594|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Completed Initalize.
+2012-04-24 13:20:47.6825|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Beginning Initialize. Name= RavenSessionStateStore. Config=connectionStringName:SessionState.
+2012-04-24 13:20:47.6825|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Completed Initalize.
+2012-04-24 13:20:47.7565|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Beginning GetItemExclusive. SessionId=jznln5jsywaikfufl1043fl4.
+2012-04-24 13:20:47.7565|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Retrieving item from RavenDB. SessionId: jznln5jsywaikfufl1043fl4; ApplicationName=/.
+2012-04-24 13:20:49.5506|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Item not found in RavenDB with SessionId: jznln5jsywaikfufl1043fl4; ApplicationName=/.
+2012-04-24 13:20:49.5506|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Completed GetItemExclusive. SessionId=jznln5jsywaikfufl1043fl4, locked=False, lockAge=00:00:00, lockId=, actions=None.
+2012-04-24 13:20:49.5506|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Beginning CreateUninitializedItem. id=jznln5jsywaikfufl1043fl4, timeout=20.
+2012-04-24 13:20:49.7467|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Completed CreateUninitializedItem. id=jznln5jsywaikfufl1043fl4, timeout=20.
+2012-04-24 13:20:49.7497|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Beginning GetItemExclusive. SessionId=jznln5jsywaikfufl1043fl4.
+2012-04-24 13:20:49.7497|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Retrieving item from RavenDB. SessionId: jznln5jsywaikfufl1043fl4; ApplicationName=/.
+2012-04-24 13:20:49.9427|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Completed GetItemExclusive. SessionId=jznln5jsywaikfufl1043fl4, locked=False, lockAge=00:00:00, lockId=1, actions=None.
+2012-04-24 13:20:50.9588|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Beginning ReleaseItemExclusive. SessionId=jznln5jsywaikfufl1043fl4, LockId=1
+2012-04-24 13:20:51.0848|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Completed ReleaseItemExclusive. SessionId=jznln5jsywaikfufl1043fl4, LockId=1
+2012-04-24 13:20:54.2381|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Beginning ResetItemTimeout. id=jznln5jsywaikfufl1043fl4.
+2012-04-24 13:20:54.2501|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Completed ResetItemTimeout. id=jznln5jsywaikfufl1043fl4.
+2012-04-24 13:20:56.9934|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Beginning GetItemExclusive. SessionId=jznln5jsywaikfufl1043fl4.
+2012-04-24 13:20:56.9934|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Retrieving item from RavenDB. SessionId: jznln5jsywaikfufl1043fl4; ApplicationName=/.
+2012-04-24 13:20:57.0054|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Completed GetItemExclusive. SessionId=jznln5jsywaikfufl1043fl4, locked=False, lockAge=00:00:00, lockId=2, actions=None.
+2012-04-24 13:20:57.0224|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider| Beginning SetAndReleaseItemExclusive. SessionId=jznln5jsywaikfufl1043fl4, LockId=2, newItem=False.
+2012-04-24 13:20:57.1354|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Completed SetAndReleaseItemExclusive. SessionId=jznln5jsywaikfufl1043fl4, LockId=2, newItem=False.
+2012-04-24 13:20:59.5666|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Beginning GetItemExclusive. SessionId=jznln5jsywaikfufl1043fl4.
+2012-04-24 13:20:59.5666|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Retrieving item from RavenDB. SessionId: jznln5jsywaikfufl1043fl4; ApplicationName=/.
+2012-04-24 13:20:59.5806|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Completed GetItemExclusive. SessionId=jznln5jsywaikfufl1043fl4, locked=False, lockAge=00:00:00, lockId=3, actions=None.
+2012-04-24 13:20:59.6176|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Beginning ReleaseItemExclusive. SessionId=jznln5jsywaikfufl1043fl4, LockId=3
+2012-04-24 13:20:59.6286|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Completed ReleaseItemExclusive. SessionId=jznln5jsywaikfufl1043fl4, LockId=3
+2012-04-24 13:21:01.6608|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Beginning ResetItemTimeout. id=jznln5jsywaikfufl1043fl4.
+2012-04-24 13:21:01.6719|DEBUG|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|Completed ResetItemTimeout. id=jznln5jsywaikfufl1043fl4.
+2012-04-24 13:32:57.7224|ERROR|Raven.AspNet.SessionState.RavenSessionStateStoreProvider|An exception was thrown while disposing the DocumentStore: System.ArgumentNullException: Value cannot be null.
+Parameter name: httpContext
+   at System.Web.HttpContextWrapper..ctor(HttpContext httpContext)
+   at Glimpse.Core.Extensibility.GlimpseTimer.get_Context()
+   at Glimpse.Core.Extensibility.GlimpseTimer.get_TimerMetadata()
+   at Glimpse.Core.Extensibility.GlimpseTimer.Moment(String message, String category, String description)
+   at Glimpse.RavenDb.Profiler.StopTrackingStore(Object sender, EventArgs e) in C:\Projects\OSS\Glimpse.RavenDb\Glimpse.RavenDb\Profiler.cs:line 196
+   at Raven.Client.Document.DocumentStore.Dispose() in c:\Builds\RavenDB-Stable\Raven.Client.Lightweight\Document\DocumentStore.cs:line 250
+   at Raven.AspNet.SessionState.RavenSessionStateStoreProvider.Dispose()

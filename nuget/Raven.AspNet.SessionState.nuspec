@@ -2,13 +2,15 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>Raven.AspNet.SessionState</id>
-    <version>1.5</version>
+    <version>1.6.0</version>
     <authors>MJ Richardson</authors>
     <owners>MJ Richardson</owners>
     <projectUrl>https://github.com/mjrichardson/RavenDbSessionStateStoreProvider</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <dependencies>
-       <dependency id="RavenDB" version="1.0.616" /> 
+       <dependency id="RavenDB-Client" version="1.0.888" /> 
+       <dependency id="Glimpse.RavenDb" version="1.6" /> 
+       <dependency id="NLog" version="2.0.0.2000" /> 
     </dependencies>
     
     <description>An ASP.NET session-state store-provider implementation using RavenDB for persistence.</description>

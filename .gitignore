@@ -11,12 +11,9 @@ _ReSharper*/
 *.resharper
 *.swp
 
-#RavenDb
-packages/RavenDB*/server/Logs
-packages/RavenDB*/server/Data
-packages/RavenDB*/server/Tenants
 
 #nuget
+packages
 nuget/lib/**/*.*
 nuget/*.nupkg
 

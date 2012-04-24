@@ -10,7 +10,6 @@ using Raven.Abstractions.Exceptions;
 using Raven.Client;
 using Raven.Client.Document;
 using Raven.Json.Linq;
-using Raven.Client.Extensions;
 
 namespace Raven.AspNet.SessionState
 {
@@ -89,6 +88,8 @@ namespace Raven.AspNet.SessionState
                                          };
 
                     _documentStore.Initialize();
+
+                    Glimpse.RavenDb.Profiler.AttachTo((DocumentStore)_documentStore);
 
                 }
 
@@ -462,8 +463,16 @@ namespace Raven.AspNet.SessionState
 
         public override void Dispose()
         {
-            if (_documentStore != null)
-                _documentStore.Dispose();
+            try
+            {
+                if (_documentStore != null)
+                    _documentStore.Dispose();
+            }
+            catch(Exception ex)
+            {
+                Logger.ErrorException("An exception was thrown while disposing the DocumentStore: ", ex);
+                //swallow the exception...nothing good can come from throwing it here!
+            }
         }
 
         //
@@ -495,17 +504,24 @@ namespace Raven.AspNet.SessionState
                 //if we get a concurrency conflict, then we want to know about it
                 documentSession.Advanced.UseOptimisticConcurrency = true;
 
+                Logger.Debug("Retrieving item from RavenDB. SessionId: {0}; ApplicationName={1}.", id, ApplicationName);
+
                 var sessionState =
                     documentSession.Query<SessionState>()
                     .Customize(x=>x.WaitForNonStaleResultsAsOfLastWrite())
                     .SingleOrDefault( x => x.SessionId == id && x.ApplicationName == ApplicationName );
 
                 if (sessionState == null)
+                {
+                    Logger.Debug("Item not found in RavenDB with SessionId: {0}; ApplicationName={1}.",id, ApplicationName);
                     return null;
+                }
 
                 //if the record is locked, we can't have it.
                 if (sessionState.Locked)
                 {
+                    Logger.Debug("Item retrieved is locked. SessionId: {0}; ApplicationName={1}.", id, ApplicationName);
+
                     locked = true;
                     lockAge = DateTime.UtcNow.Subtract((DateTime) sessionState.LockDate);
                     lockId = sessionState.LockId;
@@ -516,6 +532,8 @@ namespace Raven.AspNet.SessionState
                 //but just in case the bundle isn't installed, or we made the window, we'll delete expired items here.
                 if (sessionState.Expires < DateTime.UtcNow)
                 {
+                    Logger.Debug("Item retrieved has expired. SessionId: {0}; ApplicationName={1}; Expiry (UTC): {3}", id, ApplicationName, sessionState.Expires);
+
                     try
                     {
                         documentSession.Delete(sessionState);
