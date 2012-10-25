@@ -35,8 +35,7 @@ To have RavenDb automatically remove expired session state, install the [Expirat
 
 Instrumentation
 ==============================
-Run-time instrumentation is provided via [NLog](http://nlog-project.org) and [Glimpse](http://getglimpse.com/)
-
+Run-time instrumentation is provided via [NLog](http://nlog-project.org)
 
 NLog
 ----------------
