@@ -89,8 +89,6 @@ namespace Raven.AspNet.SessionState
 
                     _documentStore.Initialize();
 
-                    Glimpse.RavenDb.Profiler.AttachTo((DocumentStore)_documentStore);
-
                 }
 
                 Logger.Debug("Completed Initalize.");

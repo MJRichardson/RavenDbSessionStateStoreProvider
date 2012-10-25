@@ -59,8 +59,3 @@ For example, to log to a text file, place a file called NLog.config in your bin 
 
 
 
-Glimpse
------------
-Instrumentation is also provided via the [RavenDB profiling plugin for Glimpse](http://csainty.github.com/Glimpse.RavenDb/).
-
-See the [Glimpse documentation](http://getglimpse.com/Help) for information on configuring and enabling Glimpse.

@@ -2,14 +2,13 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>Raven.AspNet.SessionState</id>
-    <version>1.7.888</version>
+    <version>1.7.980</version>
     <authors>MJ Richardson</authors>
     <owners>MJ Richardson</owners>
     <projectUrl>https://github.com/mjrichardson/RavenDbSessionStateStoreProvider</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <dependencies>
        <dependency id="RavenDB.Client" version="1.0.888" /> 
-       <dependency id="Glimpse.RavenDb" version="1.7" /> 
        <dependency id="NLog" version="2.0.0.2000" /> 
     </dependencies>
     
