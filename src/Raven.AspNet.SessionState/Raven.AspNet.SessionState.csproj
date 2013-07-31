@@ -58,9 +58,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Infrastructure\PrivatePropertySetterResolver.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RavenSessionStateStoreProvider.cs" />
-    <Compile Include="SessionState.cs" />
+    <Compile Include="SessionStateDocument.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config">
