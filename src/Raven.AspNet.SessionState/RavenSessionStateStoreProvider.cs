@@ -48,6 +48,12 @@ namespace Raven.AspNet.SessionState
         /// </summary>
         public string ApplicationName { get; set; }
 
+        internal SessionStateSection SessionStateConfig
+        {
+            get { return _sessionStateConfig ?? (_sessionStateConfig = (SessionStateSection) ConfigurationManager.GetSection("system.web/sessionState")); }
+            set { _sessionStateConfig = value; }
+        }
+
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {
             Initialize(name, config, null);
@@ -80,8 +86,6 @@ namespace Raven.AspNet.SessionState
 
                 if (string.IsNullOrEmpty(ApplicationName))
                     ApplicationName = System.Web.Hosting.HostingEnvironment.ApplicationVirtualPath;
-
-                _sessionStateConfig = (SessionStateSection) ConfigurationManager.GetSection("system.web/sessionState");
                 
                 if (documentStore != null)
                     _documentStore = documentStore;
@@ -236,7 +240,7 @@ namespace Raven.AspNet.SessionState
                             .Single(x => x.SessionId == id && x.ApplicationName == ApplicationName && x.LockId == (int) lockId);
                     }
 
-                    var expiry = DateTime.UtcNow.AddMinutes(_sessionStateConfig.Timeout.TotalMinutes);
+                    var expiry = DateTime.UtcNow.AddMinutes(SessionStateConfig.Timeout.TotalMinutes);
                     sessionState.Expires = expiry;
                     documentSession.Advanced.GetMetadataFor(sessionState)["Raven-Expiration-Date"] =
                         new RavenJValue(expiry);
@@ -281,7 +285,7 @@ namespace Raven.AspNet.SessionState
                    
                         sessionState.Locked = false;
 
-                        var expiry = DateTime.UtcNow.AddMinutes(_sessionStateConfig.Timeout.TotalMinutes);
+                        var expiry = DateTime.UtcNow.AddMinutes(SessionStateConfig.Timeout.TotalMinutes);
                         sessionState.Expires = expiry;
                         documentSession.Advanced.GetMetadataFor(sessionState)["Raven-Expiration-Date"] =
                             new RavenJValue(expiry);
@@ -364,7 +368,7 @@ namespace Raven.AspNet.SessionState
 
                     if (sessionState != null)
                     {
-                        var expiry = DateTime.UtcNow.AddMinutes(_sessionStateConfig.Timeout.TotalMinutes);
+                        var expiry = DateTime.UtcNow.AddMinutes(SessionStateConfig.Timeout.TotalMinutes);
                         sessionState.Expires = expiry;
                         documentSession.Advanced.GetMetadataFor(sessionState)["Raven-Expiration-Date"] =
                             new RavenJValue(expiry);
@@ -578,8 +582,8 @@ namespace Raven.AspNet.SessionState
                     sessionState.Flags == SessionStateActions.InitializeItem
                         ? new SessionStateStoreData(new SessionStateItemCollection(),
                                                     GetSessionStaticObjects(context),
-                                                    (int)_sessionStateConfig.Timeout.TotalMinutes)
-                        : Deserialize(context, sessionState.SessionItems, (int)_sessionStateConfig.Timeout.TotalMinutes);
+                                                    (int)SessionStateConfig.Timeout.TotalMinutes)
+                        : Deserialize(context, sessionState.SessionItems, (int)SessionStateConfig.Timeout.TotalMinutes);
             }
         }
 

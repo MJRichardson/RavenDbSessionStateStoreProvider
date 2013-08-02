@@ -1,4 +1,6 @@
-﻿using Xunit;
+﻿using System.Collections.Generic;
+using Raven.AspNet.SessionState;
+using Xunit;
 
 namespace Tests
 {
@@ -10,6 +12,11 @@ namespace Tests
             get { return "XXX"; }
         }
 
+        protected override IEnumerable<SessionState> PreExistingSessionState()
+        {
+            return new List<SessionState>();
+        }
+
         [Fact]
         public void returns_null()
         {
@@ -17,7 +24,7 @@ namespace Tests
         }
 
         [Fact]
-        public void not_locked()
+        public void outputs_not_locked()
         {
            Assert.False(Locked); 
         }

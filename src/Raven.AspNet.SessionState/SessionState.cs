@@ -3,7 +3,7 @@ using System.Web.SessionState;
 
 namespace Raven.AspNet.SessionState
 {
-    internal class SessionState
+    public class SessionState
     {
         public SessionState(string sessionId, string applicationName)
         {
