@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Raven.AspNet.SessionState", "Raven.AspNet.SessionState\Raven.AspNet.SessionState.csproj", "{EE671708-CC0E-4E48-8511-820109440610}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{C122520D-5AEC-4C58-A564-E209F110009E}"
@@ -8,6 +8,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{C12252
 		.nuget\NuGet.exe = .nuget\NuGet.exe
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{AE376892-2409-4A6D-A03C-027AEA9A42A3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,6 +21,10 @@ Global
 		{EE671708-CC0E-4E48-8511-820109440610}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EE671708-CC0E-4E48-8511-820109440610}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EE671708-CC0E-4E48-8511-820109440610}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AE376892-2409-4A6D-A03C-027AEA9A42A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AE376892-2409-4A6D-A03C-027AEA9A42A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AE376892-2409-4A6D-A03C-027AEA9A42A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AE376892-2409-4A6D-A03C-027AEA9A42A3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

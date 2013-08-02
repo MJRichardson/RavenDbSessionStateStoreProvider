@@ -47,9 +47,16 @@ namespace Raven.AspNet.SessionState
         /// If not set, defaults to System.Web.Hosting.HostingEnvironment.ApplicationVirtualPath
         /// </summary>
         public string ApplicationName { get; set; }
-      
+
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {
+            Initialize(name, config, null);
+        }
+
+        internal void Initialize(string name, System.Collections.Specialized.NameValueCollection config,
+            IDocumentStore documentStore)
+        {
+            
             try
             {
                 if (config == null)
@@ -75,6 +82,9 @@ namespace Raven.AspNet.SessionState
                     ApplicationName = System.Web.Hosting.HostingEnvironment.ApplicationVirtualPath;
 
                 _sessionStateConfig = (SessionStateSection) ConfigurationManager.GetSection("system.web/sessionState");
+                
+                if (documentStore != null)
+                    _documentStore = documentStore;
 
                 if (_documentStore == null)
                 {
@@ -99,8 +109,6 @@ namespace Raven.AspNet.SessionState
                 Logger.ErrorException("Error while initializing.", ex);
                 throw;
             }
-
-
         }
 
 
@@ -427,7 +435,7 @@ namespace Raven.AspNet.SessionState
         public override SessionStateStoreData CreateNewStoreData(HttpContext context, int timeout)
         {
             return new SessionStateStoreData(new SessionStateItemCollection(),
-                                             SessionStateUtility.GetSessionStaticObjects(context),
+                                             GetSessionStaticObjects(context),
                                              timeout);
         }
 
@@ -569,7 +577,7 @@ namespace Raven.AspNet.SessionState
                 return
                     sessionState.Flags == SessionStateActions.InitializeItem
                         ? new SessionStateStoreData(new SessionStateItemCollection(),
-                                                    SessionStateUtility.GetSessionStaticObjects(context),
+                                                    GetSessionStaticObjects(context),
                                                     (int)_sessionStateConfig.Timeout.TotalMinutes)
                         : Deserialize(context, sessionState.SessionItems, (int)_sessionStateConfig.Timeout.TotalMinutes);
             }
@@ -608,9 +616,17 @@ namespace Raven.AspNet.SessionState
                 }
 
                 return new SessionStateStoreData(sessionItems,
-                                                 SessionStateUtility.GetSessionStaticObjects(context),
+                                                 GetSessionStaticObjects(context),
                                                  timeout);
             }
+        }
+
+        //facilitates testing by allowing a null HTTP context to be supplied
+        private static HttpStaticObjectsCollection  GetSessionStaticObjects(HttpContext context)
+        {
+            return context != null
+                ? SessionStateUtility.GetSessionStaticObjects(context)
+                : new HttpStaticObjectsCollection();
         }
     }
 }
