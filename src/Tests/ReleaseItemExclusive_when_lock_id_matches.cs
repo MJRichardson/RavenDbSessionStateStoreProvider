@@ -24,17 +24,15 @@ namespace Tests
             }
         }
 
-        protected override IEnumerable<SessionStateDocument> PreExistingSessionState()
+        protected override SessionStateDocument PreExistingSessionState()
         {
-            return new List<SessionStateDocument>
-                {
-                    new SessionStateDocument(SessionId, ApplicationName)
-                        {
-                            Locked = true, 
-                            LockId = LockIdExisting,
-                            Expires = ExpiryExisting
-                        }
-                };
+            return
+                new SessionStateDocument(SessionId, ApplicationName)
+                    {
+                        Locked = true,
+                        LockId = LockIdExisting,
+                        Expires = ExpiryExisting
+                    };
         }
 
         [Fact]

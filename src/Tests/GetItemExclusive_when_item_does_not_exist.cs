@@ -12,9 +12,9 @@ namespace Tests
             get { return "XXX"; }
         }
 
-        protected override IEnumerable<SessionStateDocument> PreExistingSessionState()
+        protected override SessionStateDocument PreExistingSessionState()
         {
-            return new List<SessionStateDocument>();
+            return null;
         }
 
         [Fact]

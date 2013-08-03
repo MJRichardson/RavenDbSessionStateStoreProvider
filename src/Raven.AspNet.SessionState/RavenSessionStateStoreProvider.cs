@@ -622,7 +622,7 @@ namespace Raven.AspNet.SessionState
             }
         }
 
-        private string Serialize(SessionStateItemCollection items)
+        internal string Serialize(SessionStateItemCollection items)
         {
             using (var stream = new MemoryStream())
             {
@@ -639,7 +639,7 @@ namespace Raven.AspNet.SessionState
             }
         }
 
-        private static SessionStateStoreData Deserialize(HttpContext context,
+        internal static SessionStateStoreData Deserialize(HttpContext context,
                                                          string serializedItems, int timeout)
         {
             using (var stream = new MemoryStream(Convert.FromBase64String(serializedItems)))

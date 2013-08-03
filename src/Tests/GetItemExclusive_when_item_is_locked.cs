@@ -16,17 +16,13 @@ namespace Tests
             get { return "IEXIST"; }
         }
 
-        protected override IEnumerable<SessionStateDocument> PreExistingSessionState()
+        protected override SessionStateDocument PreExistingSessionState()
         {
-            return new List<SessionStateDocument>
+            return new SessionStateDocument(SessionId, ApplicationName)
                 {
-
-                    new SessionStateDocument(SessionId, ApplicationName)
-                        {
-                            Locked = true,
-                            LockId = LockIdExisting,
-                            LockDate = LockDate
-                        }
+                    Locked = true,
+                    LockId = LockIdExisting,
+                    LockDate = LockDate
                 };
         }
 

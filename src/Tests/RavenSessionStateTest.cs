@@ -27,14 +27,16 @@ namespace Tests
             //persist pre-existing data
             using (var session = DocumentStore.OpenSession())
             {
-                foreach(var item in PreExistingSessionState())
-                    session.Store(item);
+                var existingSessionState = PreExistingSessionState();
+
+                if (existingSessionState != null)
+                    session.Store(existingSessionState);
 
                 session.SaveChanges();
             }
         } 
 
-        protected abstract IEnumerable<SessionStateDocument> PreExistingSessionState();
+        protected abstract SessionStateDocument PreExistingSessionState();
 
         protected IDocumentStore DocumentStore { get; private set; }
         protected RavenSessionStateStoreProvider Subject { get; private set; }

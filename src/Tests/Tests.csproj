@@ -108,6 +108,9 @@
     <Compile Include="RavenSessionStateTest.cs" />
     <Compile Include="ReleaseItemExclusive_when_lock_id_does_not_match.cs" />
     <Compile Include="ReleaseItemExclusive_when_lock_id_matches.cs" />
+    <Compile Include="SetAndReleaseItemExclusiveTest.cs" />
+    <Compile Include="SetAndReleaseItemExclusive_when_lock_id_does_not_match.cs" />
+    <Compile Include="SetAndReleaseItemExclusive_when_session_exists_and_lock_id_matches.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
