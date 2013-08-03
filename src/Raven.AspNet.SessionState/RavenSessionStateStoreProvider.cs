@@ -48,9 +48,22 @@ namespace Raven.AspNet.SessionState
         /// If not set, defaults to System.Web.Hosting.HostingEnvironment.ApplicationVirtualPath
         /// </summary>
         public string ApplicationName { get; set; }
-      
+
+        internal SessionStateSection SessionStateConfig
+        {
+            get { return _sessionStateConfig ?? (_sessionStateConfig = (SessionStateSection) ConfigurationManager.GetSection("system.web/sessionState")); }
+            set { _sessionStateConfig = value; }
+        }
+
         public override void Initialize(string name, System.Collections.Specialized.NameValueCollection config)
         {
+            Initialize(name, config, null);
+        }
+
+        internal void Initialize(string name, System.Collections.Specialized.NameValueCollection config,
+            IDocumentStore documentStore)
+        {
+            
             try
             {
                 if (config == null)
@@ -74,8 +87,9 @@ namespace Raven.AspNet.SessionState
 
                 if (string.IsNullOrEmpty(ApplicationName))
                     ApplicationName = System.Web.Hosting.HostingEnvironment.ApplicationVirtualPath;
-
-                _sessionStateConfig = (SessionStateSection) ConfigurationManager.GetSection("system.web/sessionState");
+                
+                if (documentStore != null)
+                    _documentStore = documentStore;
 
                 if (_documentStore == null)
                 {
@@ -100,8 +114,6 @@ namespace Raven.AspNet.SessionState
                 Logger.ErrorException("Error while initializing.", ex);
                 throw;
             }
-
-
         }
 
 
@@ -250,7 +262,7 @@ namespace Raven.AspNet.SessionState
                         }
                     }
 
-                    var expiry = DateTime.UtcNow.AddMinutes(_sessionStateConfig.Timeout.TotalMinutes);
+                    var expiry = DateTime.UtcNow.AddMinutes(SessionStateConfig.Timeout.TotalMinutes);
                     sessionStateDocument.Expires = expiry;
                     documentSession.Advanced.GetMetadataFor(sessionStateDocument)["Raven-Expiration-Date"] =
                         new RavenJValue(expiry);
@@ -307,21 +319,17 @@ namespace Raven.AspNet.SessionState
 
                     sessionState.Locked = false;
 
-                    var expiry = DateTime.UtcNow.AddMinutes(_sessionStateConfig.Timeout.TotalMinutes);
-                    sessionState.Expires = expiry;
-                    documentSession.Advanced.GetMetadataFor(sessionState)["Raven-Expiration-Date"] =
-                        new RavenJValue(expiry);
 
+                        var expiry = DateTime.UtcNow.AddMinutes(SessionStateConfig.Timeout.TotalMinutes);
+                        sessionState.Expires = expiry;
+                        documentSession.Advanced.GetMetadataFor(sessionState)["Raven-Expiration-Date"] =
+                            new RavenJValue(expiry);
                     documentSession.SaveChanges();
 
                 }
 
                 Logger.Debug("Completed ReleaseItemExclusive. SessionId={0}; Application={1}; LockId={2}.", sessionId, ApplicationName, lockId);
 
-            }
-            catch (ConcurrencyException)
-            {
-                Logger.Debug("Swallowing ConcurrencyException. SessionId={0}; Application={1}; LockId={2}.",  sessionId, ApplicationName, lockId);
             }
             catch(Exception ex)
             {
@@ -398,7 +406,7 @@ namespace Raven.AspNet.SessionState
 
                     if (sessionState != null)
                     {
-                        var expiry = DateTime.UtcNow.AddMinutes(_sessionStateConfig.Timeout.TotalMinutes);
+                        var expiry = DateTime.UtcNow.AddMinutes(SessionStateConfig.Timeout.TotalMinutes);
                         sessionState.Expires = expiry;
                         documentSession.Advanced.GetMetadataFor(sessionState)["Raven-Expiration-Date"] =
                             new RavenJValue(expiry);
@@ -468,7 +476,7 @@ namespace Raven.AspNet.SessionState
         public override SessionStateStoreData CreateNewStoreData(HttpContext context, int timeout)
         {
             return new SessionStateStoreData(new SessionStateItemCollection(),
-                                             SessionStateUtility.GetSessionStaticObjects(context),
+                                             GetSessionStaticObjects(context),
                                              timeout);
         }
 
@@ -608,9 +616,9 @@ namespace Raven.AspNet.SessionState
                 return
                     sessionState.Flags == SessionStateActions.InitializeItem
                         ? new SessionStateStoreData(new SessionStateItemCollection(),
-                                                    SessionStateUtility.GetSessionStaticObjects(context),
-                                                    (int)_sessionStateConfig.Timeout.TotalMinutes)
-                        : Deserialize(context, sessionState.SessionItems, (int)_sessionStateConfig.Timeout.TotalMinutes);
+                                                    GetSessionStaticObjects(context),
+                                                    (int)SessionStateConfig.Timeout.TotalMinutes)
+                        : Deserialize(context, sessionState.SessionItems, (int)SessionStateConfig.Timeout.TotalMinutes);
             }
         }
 
@@ -647,9 +655,17 @@ namespace Raven.AspNet.SessionState
                 }
 
                 return new SessionStateStoreData(sessionItems,
-                                                 SessionStateUtility.GetSessionStaticObjects(context),
+                                                 GetSessionStaticObjects(context),
                                                  timeout);
             }
+        }
+
+        //facilitates testing by allowing a null HTTP context to be supplied
+        private static HttpStaticObjectsCollection  GetSessionStaticObjects(HttpContext context)
+        {
+            return context != null
+                ? SessionStateUtility.GetSessionStaticObjects(context)
+                : new HttpStaticObjectsCollection();
         }
     }
 }

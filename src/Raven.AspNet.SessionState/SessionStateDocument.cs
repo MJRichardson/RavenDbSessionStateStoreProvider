@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 
 namespace Raven.AspNet.SessionState
 {
-    internal class SessionStateDocument
+    public class SessionStateDocument
     {
         public SessionStateDocument(string sessionId, string applicationName)
         {
