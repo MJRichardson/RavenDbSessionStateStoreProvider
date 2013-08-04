@@ -20,12 +20,9 @@ namespace Raven.AspNet.SessionState
     /// </summary>
     public class RavenSessionStateStoreProvider : SessionStateStoreProviderBase, IDisposable
     {
-        private const int RetriesOnConcurrentConfictsDefault = 3;
-
 
         private IDocumentStore _documentStore;
         private SessionStateSection _sessionStateConfig;
-        private int _retriesOnConcurrentConflicts = RetriesOnConcurrentConfictsDefault;
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         /// <summary>
@@ -77,13 +74,6 @@ namespace Raven.AspNet.SessionState
                     name = "RavenSessionStateStore";
 
                 base.Initialize(name, config);
-
-                if (config["retriesOnConcurrentConflicts"] != null)
-                {
-                    int retriesOnConcurrentConflicts;
-                    if (int.TryParse(config["retriesOnConcurrentConflicts"], out retriesOnConcurrentConflicts))
-                        _retriesOnConcurrentConflicts = retriesOnConcurrentConflicts;
-                }
 
                 if (string.IsNullOrEmpty(ApplicationName))
                     ApplicationName = System.Web.Hosting.HostingEnvironment.ApplicationVirtualPath;
@@ -143,7 +133,7 @@ namespace Raven.AspNet.SessionState
             {
                 Logger.Debug("Beginning GetItemExclusive. SessionId={0}; Application={1}.", sessionId, ApplicationName);
 
-                var item = GetSessionStoreItem(true, context, sessionId, _retriesOnConcurrentConflicts, out locked,
+                var item = GetSessionStoreItem(true, context, sessionId,  out locked,
                                            out lockAge, out lockId, out actions);
 
                 Logger.Debug("Completed GetItemExclusive. SessionId={0}, Application={1}, locked={2}, lockAge={3}, lockId={4}, actions={5}.", 
@@ -180,7 +170,7 @@ namespace Raven.AspNet.SessionState
             {
                 Logger.Debug("Beginning GetItem. SessionId={0}, Application={1}.", sessionId, ApplicationName);
 
-                var item =  GetSessionStoreItem(false, context, sessionId, 0, out locked, out lockAge, out lockId, out actions);
+                var item =  GetSessionStoreItem(false, context, sessionId,  out locked, out lockAge, out lockId, out actions);
 
                 Logger.Debug("Completed GetItem. SessionId={0}, Application={1}, locked={2}, lockAge={3}, lockId={4}, actions={5}.", 
                     sessionId, ApplicationName, locked, lockAge, lockId, actions);
@@ -219,38 +209,26 @@ namespace Raven.AspNet.SessionState
 
                 using (var documentSession = _documentStore.OpenSession())
                 {
-                    //if we get a concurrency conflict, then we want to know about it
-                    documentSession.Advanced.UseOptimisticConcurrency = true;
-
                     SessionStateDocument sessionStateDocument;
-                    if (newItem)
+                    SessionStateExpiryDocument expiryDocument;
+
+                    if (newItem) //if we are creating a new document
                     {
-                        sessionStateDocument =
-                            documentSession.Load<SessionStateDocument>(SessionStateDocument.GenerateDocumentId(
-                                sessionId, ApplicationName));
+                        sessionStateDocument = new SessionStateDocument(sessionId, ApplicationName);
+                        expiryDocument = new SessionStateExpiryDocument(sessionId, ApplicationName);
 
-                        //if there is an existing document
-                        if (sessionStateDocument != null)
-                        {
-                            //and it is not expired, then something has gone wrong
-                            if (!sessionStateDocument.IsExpired)
-                                throw new InvalidOperationException(
-                                    string.Format("Item aleady exists with SessionId={0} and ApplicationName={1}",
-                                        sessionId, lockId));
+                        documentSession.Store(sessionStateDocument);
+                        documentSession.Store(expiryDocument);
 
-                            //otherwise it is expired, which is fine, we'll just overwrite it 
-                        }
-                        else // the document doesn't exist, so create it
-                        {
-                            sessionStateDocument = new SessionStateDocument(sessionId, ApplicationName);
-                            documentSession.Store(sessionStateDocument);
-                        }
                     }
-                    else //we are not creating a new document, so fetch it
+                    else //we are not creating a new document, so load it
                     {
                         sessionStateDocument =
-                            documentSession.Load<SessionStateDocument>(SessionStateDocument.GenerateDocumentId(
-                                sessionId, ApplicationName));
+                            documentSession
+                                .Include<SessionStateDocument>(x => x.ExpiryDocumentId) //load the expiry document in the same call
+                                .Load<SessionStateDocument>(SessionStateDocument.GenerateDocumentId( sessionId, ApplicationName));
+
+                        expiryDocument = documentSession.Load<SessionStateExpiryDocument>(sessionStateDocument.ExpiryDocumentId);
 
                         //if the lock identifier does not match, then we don't modifiy the data
                         if (sessionStateDocument.LockId != (int) lockId)
@@ -263,7 +241,7 @@ namespace Raven.AspNet.SessionState
                     }
 
                     var expiry = DateTime.UtcNow.AddMinutes(SessionStateConfig.Timeout.TotalMinutes);
-                    sessionStateDocument.Expires = expiry;
+                    expiryDocument.Expiry = expiry;
                     documentSession.Advanced.GetMetadataFor(sessionStateDocument)["Raven-Expiration-Date"] =
                         new RavenJValue(expiry);
                     sessionStateDocument.SessionItems = serializedItems;
@@ -274,10 +252,6 @@ namespace Raven.AspNet.SessionState
 
                 Logger.Debug("Completed SetAndReleaseItemExclusive. SessionId={0}; Application:{1}; LockId={2}; newItem={3}.", sessionId, ApplicationName, lockId, newItem);
 
-            }
-            catch (ConcurrencyException)
-            {
-               Logger.Debug("Swallowing ConcurrencyException.SessionId={0}; Application: {1}; LockId={2}", sessionId, ApplicationName, lockId); 
             }
             catch(Exception ex)
             {
@@ -300,12 +274,12 @@ namespace Raven.AspNet.SessionState
 
                 using (var documentSession = _documentStore.OpenSession())
                 {
-                    //if we get a concurrency conflict, then we want to know about it
-                    documentSession.Advanced.UseOptimisticConcurrency = true;
-
                     var sessionState =
-                        documentSession.Load<SessionStateDocument>(SessionStateDocument.GenerateDocumentId(sessionId,
-                            ApplicationName));
+                            documentSession
+                                .Include<SessionStateDocument>(x => x.ExpiryDocumentId) //load the expiry document in the same call
+                                .Load<SessionStateDocument>(SessionStateDocument.GenerateDocumentId( sessionId, ApplicationName));
+
+                    var expiryDocument = sessionState != null ? documentSession.Load<SessionStateExpiryDocument>(sessionState.ExpiryDocumentId) : null;
 
                     //if the session-state is not present (it may have expired and been removed) or
                     //the locked id does not match, then we do nothing
@@ -320,12 +294,10 @@ namespace Raven.AspNet.SessionState
                     sessionState.Locked = false;
 
 
-                        var expiry = DateTime.UtcNow.AddMinutes(SessionStateConfig.Timeout.TotalMinutes);
-                        sessionState.Expires = expiry;
-                        documentSession.Advanced.GetMetadataFor(sessionState)["Raven-Expiration-Date"] =
-                            new RavenJValue(expiry);
+                    var expiry = DateTime.UtcNow.AddMinutes(SessionStateConfig.Timeout.TotalMinutes);
+                    expiryDocument.Expiry = expiry;
+                    documentSession.Advanced.GetMetadataFor(sessionState)["Raven-Expiration-Date"] = new RavenJValue(expiry);
                     documentSession.SaveChanges();
-
                 }
 
                 Logger.Debug("Completed ReleaseItemExclusive. SessionId={0}; Application={1}; LockId={2}.", sessionId, ApplicationName, lockId);
@@ -356,26 +328,24 @@ namespace Raven.AspNet.SessionState
 
                 using (var documentSession = _documentStore.OpenSession())
                 {
-                    //if we get a concurrency conflict, then we want to know about it
-                    documentSession.Advanced.UseOptimisticConcurrency = true;
+                    var sessionStateDocument = documentSession
+                                .Include<SessionStateDocument>(x => x.ExpiryDocumentId) //load the expiry document in the same call
+                                .Load<SessionStateDocument>(SessionStateDocument.GenerateDocumentId( sessionId, ApplicationName));
 
-                    var sessionState =
-                        documentSession.Load<SessionStateDocument>(SessionStateDocument.GenerateDocumentId(sessionId,
-                            ApplicationName));
+                    var expiryDocument = sessionStateDocument != null ? documentSession.Load<SessionStateExpiryDocument>(sessionStateDocument.ExpiryDocumentId) : null;
 
-                    if (sessionState != null && sessionState.LockId == (int) lockId)
+                    if (sessionStateDocument != null && sessionStateDocument.LockId == (int) lockId)
                     {
-                        documentSession.Delete(sessionState);
+                        documentSession.Delete(sessionStateDocument);
+                        if (expiryDocument != null)
+                            documentSession.Delete(expiryDocument);
+
                         documentSession.SaveChanges();
                     }
                 }
 
                 Logger.Debug("Completed RemoveItem. SessionId={0}; Application={1}; lockId={2}.", sessionId,
                     ApplicationName, lockId);
-            }
-            catch (ConcurrencyException)
-            {
-               Logger.Debug("Swallowing ConcurrencyException. SessionId={0}; Application={1}; lockId={2}.", sessionId, ApplicationName, lockId ); 
             }
             catch (Exception ex)
             {
@@ -395,30 +365,33 @@ namespace Raven.AspNet.SessionState
             {
                 Logger.Debug("Beginning ResetItemTimeout. SessionId={0}; Application={1}.", sessionId, ApplicationName);
 
+                var expiry = DateTime.UtcNow.AddMinutes(SessionStateConfig.Timeout.TotalMinutes);
 
                 using (var documentSession = _documentStore.OpenSession())
                 {
-                    //we do not want to overwrite any changes
-                    documentSession.Advanced.UseOptimisticConcurrency = true;
+                    var sessionStateDocument = documentSession
+                                .Load<SessionStateDocument>(SessionStateDocument.GenerateDocumentId( sessionId, ApplicationName));
 
-                    var sessionState =
-                        documentSession.Load<SessionStateDocument>(SessionStateDocument.GenerateDocumentId(sessionId, ApplicationName));
 
-                    if (sessionState != null)
+                    if (sessionStateDocument != null)
                     {
-                        var expiry = DateTime.UtcNow.AddMinutes(SessionStateConfig.Timeout.TotalMinutes);
-                        sessionState.Expires = expiry;
-                        documentSession.Advanced.GetMetadataFor(sessionState)["Raven-Expiration-Date"] =
+                        //we will just overwrite the existing expiry document
+                        var expiryDocument = new SessionStateExpiryDocument(sessionId, ApplicationName)
+                            {
+                                Expiry = expiry
+                            };
+                        documentSession.Advanced.GetMetadataFor(sessionStateDocument)["Raven-Expiration-Date"] =
                             new RavenJValue(expiry);
+                        documentSession.Advanced.GetMetadataFor(expiryDocument)["Raven-Expiration-Date"] =
+                            new RavenJValue(expiry);
+
+                        documentSession.Store(expiryDocument);
+
                         documentSession.SaveChanges();
                     }
                 }
 
                 Logger.Debug("Completed ResetItemTimeout. SessionId={0}; Application={1}.", sessionId, ApplicationName);
-            }
-            catch(ConcurrencyException)
-            {
-               Logger.Debug("Swallowing ConcurrencyException. SessionId={0}; Application={1}.", sessionId, ApplicationName ); 
             }
             catch(Exception ex)
             {
@@ -444,14 +417,16 @@ namespace Raven.AspNet.SessionState
                 {
                     var expiry = DateTime.UtcNow.AddMinutes(timeout);
 
-                    var sessionState = new SessionStateDocument(sessionId, ApplicationName)
-                                           {
-                                               Expires = expiry
-                                           };
+                    var sessionStateDocument = new SessionStateDocument(sessionId, ApplicationName);
+                    var expiryDocument = new SessionStateExpiryDocument(sessionId, ApplicationName);
 
-                    documentSession.Store(sessionState);
-                    documentSession.Advanced.GetMetadataFor(sessionState)["Raven-Expiration-Date"] =
+                    documentSession.Store(sessionStateDocument);
+                    documentSession.Store(expiryDocument);
+                    documentSession.Advanced.GetMetadataFor(sessionStateDocument)["Raven-Expiration-Date"] =
                         new RavenJValue(expiry);
+                    documentSession.Advanced.GetMetadataFor(expiryDocument)["Raven-Expiration-Date"] =
+                        new RavenJValue(expiry);
+
                     documentSession.SaveChanges();
                 }
 
@@ -532,7 +507,6 @@ namespace Raven.AspNet.SessionState
         private SessionStateStoreData GetSessionStoreItem(bool lockRecord,
                                                           HttpContext context,
                                                           string sessionId,
-                                                          int retriesRemaining,
                                                           out bool locked,
                                                           out TimeSpan lockAge,
                                                           out object lockId,
@@ -548,13 +522,14 @@ namespace Raven.AspNet.SessionState
             {
                 //don't tolerate stale data
                 documentSession.Advanced.AllowNonAuthoritativeInformation = false;
-                //if we get a concurrency conflict, then we want to know about it
-                documentSession.Advanced.UseOptimisticConcurrency = true;
 
-                Logger.Debug("Retrieving item from RavenDB. SessionId: {0}. ", sessionId);
+                Logger.Debug("Retrieving item from RavenDB. SessionId: {0}; Application: {1}.", sessionId, ApplicationName);
 
-                var sessionState =
-                    documentSession.Load<SessionStateDocument>(SessionStateDocument.GenerateDocumentId(sessionId, ApplicationName));
+                    var sessionState = documentSession
+                                .Include<SessionStateDocument>(x => x.ExpiryDocumentId) //load the expiry document in the same call
+                                .Load<SessionStateDocument>(SessionStateDocument.GenerateDocumentId( sessionId, ApplicationName));
+
+                    var expiryDocument = sessionState != null ? documentSession.Load<SessionStateExpiryDocument>(sessionState.ExpiryDocumentId) : null;
 
                 if (sessionState == null)
                 {
@@ -575,18 +550,20 @@ namespace Raven.AspNet.SessionState
 
                 //generally we shouldn't get expired items, as the expiration bundle should clean them up,
                 //but just in case the bundle isn't installed, or we made the window, we'll delete expired items here.
-                if (sessionState.Expires < DateTime.UtcNow)
+                if ( expiryDocument != null && expiryDocument.IsExpired)
                 {
-                    Logger.Debug("Item retrieved has expired. SessionId: {0}; Application: {1}; Expiry (UTC): {2}", sessionId, ApplicationName, sessionState.Expires);
+                    Logger.Debug("Item retrieved has expired. SessionId: {0}; Application: {1}; Expiry (UTC): {2}", sessionId, ApplicationName, expiryDocument.Expiry);
 
                     try
                     {
                         documentSession.Delete(sessionState);
+                        documentSession.Delete(expiryDocument);
                         documentSession.SaveChanges();
                     }
-                    catch (ConcurrencyException)
+                    catch (Exception ex)
                     {
-                        //we swallow, as we don't care. Presumably the other modifier deleted it as well.
+                        //we never want this clean-up op to throw
+                        Logger.DebugException("Exception thrown while attempting to remove expired item.", ex);
                     }
 
                     return null;
@@ -598,18 +575,7 @@ namespace Raven.AspNet.SessionState
                     sessionState.LockId += 1;
                     sessionState.LockDate = DateTime.UtcNow;
 
-                    try
-                    {
-                        documentSession.SaveChanges();
-                    }
-                    catch (ConcurrencyException)
-                    {
-                        if (retriesRemaining > 0)
-                            return GetSessionStoreItem(true, context, sessionId, retriesRemaining - 1, out locked,
-                                                       out lockAge, out lockId, out actionFlags);
-
-                        throw;
-                    }
+                    documentSession.SaveChanges();
                 }
 
                 lockId = sessionState.LockId;

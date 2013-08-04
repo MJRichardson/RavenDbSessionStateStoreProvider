@@ -37,6 +37,7 @@ namespace Tests
         } 
 
         protected abstract SessionStateDocument PreExistingSessionState();
+        protected abstract SessionStateExpiryDocument PreExistingExpiry();
 
         protected IDocumentStore DocumentStore { get; private set; }
         protected RavenSessionStateStoreProvider Subject { get; private set; }

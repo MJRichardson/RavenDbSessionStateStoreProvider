@@ -30,7 +30,14 @@ namespace Tests
                 {
                     Locked = true,
                     LockId = LockIdExisting,
-                    Expires = ExpiryExisting
+                };
+        }
+
+        protected override SessionStateExpiryDocument PreExistingExpiry()
+        {
+            return new SessionStateExpiryDocument(SessionId, ApplicationName)
+                {
+                    Expiry = ExpiryExisting
                 };
         }
 
