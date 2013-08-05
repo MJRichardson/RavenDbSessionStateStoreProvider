@@ -11,6 +11,7 @@ namespace Raven.AspNet.SessionState
             SessionId = sessionId;
             ApplicationName = applicationName;
             Id = GenerateDocumentId(sessionId, applicationName);
+            ExpiryDocumentId = SessionStateExpiryDocument.GenerateDocumentId(sessionId, applicationName);
             Created = DateTime.UtcNow;
             SessionItems = string.Empty;
         }
@@ -24,7 +25,7 @@ namespace Raven.AspNet.SessionState
         public bool Locked { get; set; }
         public string SessionItems { get; set; }
         public SessionStateActions Flags { get; set; }
-        public string ExpiryDocumentId { get;  set; }
+        public string ExpiryDocumentId { get;  private set; }
 
         public static string GenerateDocumentId(string sessionId, string applicationName)
         {

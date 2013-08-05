@@ -26,6 +26,14 @@ namespace Tests
                 };
         }
 
+        protected override SessionStateExpiryDocument PreExistingExpiry()
+        {
+            return new SessionStateExpiryDocument(SessionId, ApplicationName)
+            {
+                Expiry = DateTime.UtcNow.AddMinutes(10)
+            };
+        }
+
         [Fact]
         public void returns_null()
         {

@@ -28,9 +28,13 @@ namespace Tests
             using (var session = DocumentStore.OpenSession())
             {
                 var existingSessionState = PreExistingSessionState();
+                var existingExpiry = PreExistingExpiry();
 
                 if (existingSessionState != null)
                     session.Store(existingSessionState);
+
+                if (existingExpiry != null)
+                    session.Store(existingExpiry);
 
                 session.SaveChanges();
             }

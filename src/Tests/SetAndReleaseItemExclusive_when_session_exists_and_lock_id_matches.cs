@@ -44,27 +44,34 @@ namespace Tests
                     Locked = true,
                     LockId = LockId,
                     SessionItems = Subject.Serialize(items),
-                    Expires = DateTime.UtcNow.AddMinutes(1)
                 }; 
+        }
+
+        protected override SessionStateExpiryDocument PreExistingExpiry()
+        {
+            return new SessionStateExpiryDocument(SessionId, ApplicationName)
+            {
+                Expiry = DateTime.UtcNow.AddMinutes(1)
+            }; 
         }
 
         [Fact]
         public void item_is_unlocked()
         {
-            Assert.False(Result.Locked);
+            Assert.False(PersistedSessionStateDocument.Locked);
         }
 
 
         [Fact]
         public void data_is_modified()
         {
-          Assert.Equal(Subject.Serialize(Items), Result.SessionItems );  
+          Assert.Equal(Subject.Serialize(Items), PersistedSessionStateDocument.SessionItems );  
         }
 
         [Fact]
         public void expiry_is_extended()
         {
-            Assert.True(Result.Expires > ExistingExpiry);
+            Assert.True(PersistedExpiryDocument.Expiry > ExistingExpiry);
         }
     }
 }

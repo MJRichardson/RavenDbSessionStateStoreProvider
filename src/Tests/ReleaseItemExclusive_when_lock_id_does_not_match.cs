@@ -11,7 +11,8 @@ namespace Tests
         protected const int LockIdExisting = 4;
         protected DateTime ExpiryExisting = DateTime.UtcNow.AddMilliseconds(6);
 
-        protected SessionStateDocument Result { get; private set; }
+        protected SessionStateDocument PersistedSessionStateDocument { get; private set; }
+        protected SessionStateExpiryDocument PersistedExpiryDocument { get; set; }
 
         public ReleaseItemExclusive_when_lock_id_does_not_match()
         {
@@ -20,7 +21,8 @@ namespace Tests
 
             using (var session = DocumentStore.OpenSession())
             {
-                Result = session.Load<SessionStateDocument>(SessionStateDocument.GenerateDocumentId(SessionId, ApplicationName));
+                PersistedSessionStateDocument = session.Load<SessionStateDocument>(SessionStateDocument.GenerateDocumentId(SessionId, ApplicationName));
+                PersistedExpiryDocument = session.Load<SessionStateExpiryDocument>(SessionStateExpiryDocument.GenerateDocumentId(SessionId, ApplicationName));
             }
         }
 
@@ -44,19 +46,19 @@ namespace Tests
         [Fact]
         public void item_remains_locked()
         {
-            Assert.True(Result.Locked);
+            Assert.True(PersistedSessionStateDocument.Locked);
         }
 
         [Fact]
         public void lock_id_is_unchanged()
         {
-            Assert.Equal(LockIdExisting, Result.LockId);
+            Assert.Equal(LockIdExisting, PersistedSessionStateDocument.LockId);
         }
 
         [Fact]
         public void expiry_is_unchanged()
         {
-            Assert.Equal(ExpiryExisting, Result.Expires);
+            Assert.Equal(ExpiryExisting, PersistedExpiryDocument.Expiry);
         }
     }
 }
