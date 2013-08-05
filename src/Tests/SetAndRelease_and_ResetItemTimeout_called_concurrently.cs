@@ -24,7 +24,7 @@ namespace Tests
 
                     var sessionState = Subject.GetItemExclusive(null, SessionId, out locked, out lockAge, out lockId, out actions);
 
-                    Subject.SetAndReleaseItemExclusive(null, SessionId, sessionState, lockId, false );
+                    Subject.SetAndReleaseItemExclusive(null, SessionId, sessionState, lockId, false);
                 }
 
             });
@@ -62,7 +62,7 @@ namespace Tests
         {
             return new SessionStateExpiryDocument(SessionId, ApplicationName)
             {
-                Expiry = DateTime.UtcNow.AddMinutes(1)
+                Expiry = DateTime.UtcNow.AddMinutes(8)
             }; 
         }
 

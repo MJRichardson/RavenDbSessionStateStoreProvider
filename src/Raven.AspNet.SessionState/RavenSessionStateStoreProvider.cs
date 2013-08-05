@@ -6,7 +6,6 @@ using System.Web;
 using System.Web.Configuration;
 using System.Web.SessionState;
 using NLog;
-using Raven.Abstractions.Exceptions;
 using Raven.AspNet.SessionState.Infrastructure;
 using Raven.Client;
 using Raven.Client.Document;
@@ -205,20 +204,23 @@ namespace Raven.AspNet.SessionState
                     " Beginning SetAndReleaseItemExclusive. SessionId={0}, Application: {1}, LockId={2}, newItem={3}.",
                     sessionId, ApplicationName, lockId, newItem);
 
+                if ( item == null)
+                    throw new ArgumentNullException("item");
+
                 var serializedItems = Serialize((SessionStateItemCollection) item.Items);
 
                 using (var documentSession = _documentStore.OpenSession())
                 {
+                    //don't tolerate stale data
+                    documentSession.Advanced.AllowNonAuthoritativeInformation = false;
+
                     SessionStateDocument sessionStateDocument;
-                    SessionStateExpiryDocument expiryDocument;
 
                     if (newItem) //if we are creating a new document
                     {
                         sessionStateDocument = new SessionStateDocument(sessionId, ApplicationName);
-                        expiryDocument = new SessionStateExpiryDocument(sessionId, ApplicationName);
 
                         documentSession.Store(sessionStateDocument);
-                        documentSession.Store(expiryDocument);
 
                     }
                     else //we are not creating a new document, so load it
@@ -227,8 +229,6 @@ namespace Raven.AspNet.SessionState
                             documentSession
                                 .Include<SessionStateDocument>(x => x.ExpiryDocumentId) //load the expiry document in the same call
                                 .Load<SessionStateDocument>(SessionStateDocument.GenerateDocumentId( sessionId, ApplicationName));
-
-                        expiryDocument = documentSession.Load<SessionStateExpiryDocument>(sessionStateDocument.ExpiryDocumentId);
 
                         //if the lock identifier does not match, then we don't modifiy the data
                         if (sessionStateDocument.LockId != (int) lockId)
@@ -240,10 +240,6 @@ namespace Raven.AspNet.SessionState
                         }
                     }
 
-                    var expiry = DateTime.UtcNow.AddMinutes(SessionStateConfig.Timeout.TotalMinutes);
-                    expiryDocument.Expiry = expiry;
-                    documentSession.Advanced.GetMetadataFor(sessionStateDocument)["Raven-Expiration-Date"] =
-                        new RavenJValue(expiry);
                     sessionStateDocument.SessionItems = serializedItems;
                     sessionStateDocument.Locked = false;
 
@@ -274,6 +270,9 @@ namespace Raven.AspNet.SessionState
 
                 using (var documentSession = _documentStore.OpenSession())
                 {
+                    //don't tolerate stale data
+                    documentSession.Advanced.AllowNonAuthoritativeInformation = false;
+                    
                     var sessionState =
                             documentSession
                                 .Include<SessionStateDocument>(x => x.ExpiryDocumentId) //load the expiry document in the same call
@@ -328,6 +327,9 @@ namespace Raven.AspNet.SessionState
 
                 using (var documentSession = _documentStore.OpenSession())
                 {
+                    //don't tolerate stale data
+                    documentSession.Advanced.AllowNonAuthoritativeInformation = false;
+
                     var sessionStateDocument = documentSession
                                 .Include<SessionStateDocument>(x => x.ExpiryDocumentId) //load the expiry document in the same call
                                 .Load<SessionStateDocument>(SessionStateDocument.GenerateDocumentId( sessionId, ApplicationName));

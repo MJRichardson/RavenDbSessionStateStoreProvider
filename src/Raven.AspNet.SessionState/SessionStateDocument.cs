@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Web.SessionState;
-using Newtonsoft.Json;
 
 namespace Raven.AspNet.SessionState
 {

@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
+using Raven.Imports.Newtonsoft.Json;
+using Raven.Imports.Newtonsoft.Json.Serialization;
 
 namespace Raven.AspNet.SessionState.Infrastructure
 {

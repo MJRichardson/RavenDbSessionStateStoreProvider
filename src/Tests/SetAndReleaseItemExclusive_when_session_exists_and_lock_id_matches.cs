@@ -67,11 +67,5 @@ namespace Tests
         {
           Assert.Equal(Subject.Serialize(Items), PersistedSessionStateDocument.SessionItems );  
         }
-
-        [Fact]
-        public void expiry_is_extended()
-        {
-            Assert.True(PersistedExpiryDocument.Expiry > ExistingExpiry);
-        }
     }
 }
