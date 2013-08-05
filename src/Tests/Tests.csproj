@@ -111,6 +111,7 @@
     <Compile Include="SetAndReleaseItemExclusiveTest.cs" />
     <Compile Include="SetAndReleaseItemExclusive_when_lock_id_does_not_match.cs" />
     <Compile Include="SetAndReleaseItemExclusive_when_session_exists_and_lock_id_matches.cs" />
+    <Compile Include="SetAndRelease_and_ResetItemTimeout_called_concurrently.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
