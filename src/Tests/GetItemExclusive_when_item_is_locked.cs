@@ -22,16 +22,9 @@ namespace Tests
                 {
                     Locked = true,
                     LockId = LockIdExisting,
-                    LockDate = LockDate
+                    LockDate = LockDate,
+                    Expiry = DateTime.UtcNow.AddMinutes(10)
                 };
-        }
-
-        protected override SessionStateExpiryDocument PreExistingExpiry()
-        {
-            return new SessionStateExpiryDocument(SessionId, ApplicationName)
-            {
-                Expiry = DateTime.UtcNow.AddMinutes(10)
-            };
         }
 
         [Fact]

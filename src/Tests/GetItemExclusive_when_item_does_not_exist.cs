@@ -17,11 +17,6 @@ namespace Tests
             return null;
         }
 
-        protected override SessionStateExpiryDocument PreExistingExpiry()
-        {
-            return null;
-        }
-
         [Fact]
         public void returns_null()
         {

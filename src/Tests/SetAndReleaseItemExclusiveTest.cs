@@ -13,7 +13,6 @@ namespace Tests
             using (var session = DocumentStore.OpenSession())
             {
                 PersistedSessionStateDocument = session.Load<SessionStateDocument>(SessionStateDocument.GenerateDocumentId(SessionId, ApplicationName));
-                PersistedExpiryDocument = session.Load<SessionStateExpiryDocument>(SessionStateExpiryDocument.GenerateDocumentId(SessionId, ApplicationName));
             }
         }
 
@@ -23,7 +22,6 @@ namespace Tests
         protected abstract SessionStateItemCollection Items { get; }
 
         protected SessionStateDocument PersistedSessionStateDocument { get; set; }
-        protected SessionStateExpiryDocument PersistedExpiryDocument { get; set; }
 
 
     }

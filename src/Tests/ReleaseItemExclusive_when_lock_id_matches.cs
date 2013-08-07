@@ -12,7 +12,6 @@ namespace Tests
         protected DateTime ExpiryExisting = DateTime.UtcNow.AddMilliseconds(6);
 
         protected SessionStateDocument PersistedSessionStateDocument { get; set; }
-        protected SessionStateExpiryDocument PersistedExpiryDocument { get; set; }
 
         public ReleaseItemExclusive_when_lock_id_matches()
         {
@@ -22,7 +21,6 @@ namespace Tests
             using (var session = DocumentStore.OpenSession())
             {
                 PersistedSessionStateDocument = session.Load<SessionStateDocument>(SessionStateDocument.GenerateDocumentId(SessionId, ApplicationName));
-                PersistedExpiryDocument = session.Load<SessionStateExpiryDocument>(SessionStateExpiryDocument.GenerateDocumentId(SessionId, ApplicationName));
             }
         }
 
@@ -33,15 +31,8 @@ namespace Tests
                     {
                         Locked = true,
                         LockId = LockIdExisting,
+                        Expiry = ExpiryExisting
                     };
-        }
-
-        protected override SessionStateExpiryDocument PreExistingExpiry()
-        {
-            return new SessionStateExpiryDocument(SessionId, ApplicationName)
-            {
-                Expiry = ExpiryExisting
-            }; 
         }
 
         [Fact]
@@ -53,7 +44,7 @@ namespace Tests
         [Fact]
         public void expiry_is_extended()
         {
-            Assert.True(PersistedExpiryDocument.Expiry >= ExpiryExisting.Add(Timeout));
+            Assert.True(PersistedSessionStateDocument.Expiry >= ExpiryExisting.Add(Timeout));
         }
     }
 }

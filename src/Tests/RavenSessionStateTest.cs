@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Web.Configuration;
 using Raven.AspNet.SessionState;
@@ -28,20 +27,15 @@ namespace Tests
             using (var session = DocumentStore.OpenSession())
             {
                 var existingSessionState = PreExistingSessionState();
-                var existingExpiry = PreExistingExpiry();
 
                 if (existingSessionState != null)
                     session.Store(existingSessionState);
-
-                if (existingExpiry != null)
-                    session.Store(existingExpiry);
 
                 session.SaveChanges();
             }
         } 
 
         protected abstract SessionStateDocument PreExistingSessionState();
-        protected abstract SessionStateExpiryDocument PreExistingExpiry();
 
         protected IDocumentStore DocumentStore { get; private set; }
         protected RavenSessionStateStoreProvider Subject { get; private set; }

@@ -55,15 +55,8 @@ namespace Tests
                     Locked = false,
                     LockId = 3,
                     SessionItems = Subject.Serialize(items),
+                    Expiry = DateTime.UtcNow.AddMinutes(8)
                 }; 
-        }
-
-        protected override SessionStateExpiryDocument PreExistingExpiry()
-        {
-            return new SessionStateExpiryDocument(SessionId, ApplicationName)
-            {
-                Expiry = DateTime.UtcNow.AddMinutes(8)
-            }; 
         }
 
         [Fact]
