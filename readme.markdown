@@ -1,4 +1,3 @@
-
 RavenSessionStateStoreProvider
 ==============================
 
@@ -30,7 +29,7 @@ Configuration
 
 Notes
 =============================
-To have RavenDb automatically remove expired session state, install the [Expiration Bundle](http://ravendb.net/docs/server/bundles/expiration).
+To have RavenDb automatically remove expired session state, install the [Expiration Bundle](http://ravendb.net/docs/2.0/server/extending/bundles/expiration).
 
 
 Instrumentation
